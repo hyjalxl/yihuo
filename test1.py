@@ -48,5 +48,27 @@ def t3():
             sess.run(update)
             print(sess.run(state))
 
+def placeholder_test():
+    input1 = tf.placeholder(tf.float32)
+    input2 = tf.placeholder(tf.float32)
+
+    output = tf.multiply(input1, input2)
+
+    with tf.Session() as sess:
+        print(sess.run(output, feed_dict={input1: [7.], input2: [9.]}))
+
+
+def add_layer(inputs, in_size, out_size, activation_function=None):
+    Weights = tf.Variable(tf.random_normal([in_size, out_size]))
+    biases = tf.Variable(tf.zeros([1, out_size]) + 0.1)
+    Wx_plus_b = tf.matmul(inputs, Weights) + biases
+
+    if activation_function is None:
+        outputs = Wx_plus_b
+    else:
+        outputs = activation_function(Wx_plus_b)
+
+    return outputs
+
 if __name__ == '__main__':
-    t3()
+    placeholder_test()
