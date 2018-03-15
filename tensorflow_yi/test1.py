@@ -3,6 +3,7 @@
 
 import tensorflow as tf
 import numpy as np
+import matplotlib.pyplot as plt
 
 
 def t1():
@@ -48,6 +49,7 @@ def t3():
             sess.run(update)
             print(sess.run(state))
 
+
 def placeholder_test():
     input1 = tf.placeholder(tf.float32)
     input2 = tf.placeholder(tf.float32)
@@ -70,5 +72,35 @@ def add_layer(inputs, in_size, out_size, activation_function=None):
 
     return outputs
 
+
+def net():
+    x_date = np.linspace(-1, 1, 300, dtype=np.float32)[:, np.newaxis]
+    noise = np.random.normal(0, 0.05, x_date.shape).astype(np.float32)
+    y_date = np.square(x_date) - 0.5 + noise
+
+    xs = tf.placeholder(tf.float32, [None, 1])
+    ys = tf.placeholder(tf.float32, [None, 1])
+
+    l1 = add_layer(xs, 1, 10, activation_function=tf.nn.relu)
+
+    prediction = add_layer(l1, 10, 1, activation_function=None)
+
+    loss = tf.reduce_mean(tf.reduce_sum(tf.square(ys - prediction), reduction_indices=[1]))
+
+    train_step = tf.train.GradientDescentOptimizer(0.1).minimize(loss)
+
+    init = tf.global_variables_initializer()
+
+    sess = tf.Session()
+
+    writer = tf.summary.FileWriter('logs/', sess.graph)
+    sess.run(init)
+
+    for i in range(1000):
+        sess.run(train_step, feed_dict={xs: x_date, ys: y_date})
+        if i % 20 == 0:
+            print(sess.run(loss, feed_dict={xs: x_date, ys: y_date}))
+
 if __name__ == '__main__':
-    placeholder_test()
+    # placeholder_test()
+    net()

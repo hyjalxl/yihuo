@@ -1,19 +1,19 @@
 # coding=utf-8
 # user=hu
 
+import re
+import time
+
+import urllib2
 from selenium import webdriver
 from selenium.webdriver import ActionChains
 from selenium.webdriver.common.by import By
-# webDriverWait 库，负责循环等待
-from selenium.webdriver.support.ui import WebDriverWait
 # expected_conditions 累负责条件触发
 from selenium.webdriver.support import expected_conditions as EC
+# webDriverWait 库，负责循环等待
+from selenium.webdriver.support.ui import WebDriverWait
 
-import re
-import time
-import urllib2
-import requests
-import firefox_headless
+from spider import firefox_headless
 
 
 def send_cookie(cookie_value):
