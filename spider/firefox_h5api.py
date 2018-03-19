@@ -3,8 +3,8 @@
 
 import re
 import time
-
 import urllib2
+
 from selenium import webdriver
 from selenium.webdriver import ActionChains
 from selenium.webdriver.common.by import By
@@ -12,8 +12,9 @@ from selenium.webdriver.common.by import By
 from selenium.webdriver.support import expected_conditions as EC
 # webDriverWait 库，负责循环等待
 from selenium.webdriver.support.ui import WebDriverWait
+from selenium.webdriver.firefox.options import Options
 
-from spider import firefox_headless
+
 
 
 def send_cookie(cookie_value):
@@ -22,22 +23,26 @@ def send_cookie(cookie_value):
     :param cookie_value:
     :return:
     """
+    option = Options()
+    option.add_argument('--headless')
+    headless_firefox_driver = webdriver.Firefox(options=option)
+    print 'send_cookie is run.'
     url = 'https://api.xiaoyataoke.com/api/XiaoYaTaoKe/AddV6Cookie?shop_name=ZzZrdWd1Vk8zWXFISHM2TVNlMlFKRlNLL3ZjWXlaTTU=&data_source=huyangjie&cookies=' + cookie_value
     # print url
-    headless_firefox_driver = firefox_headless.get_driver()
     headless_firefox_driver.get(url)
-    headless_firefox_driver.save_screenshot('response' + str(time.time())[3:10] + '.png')
+    # headless_firefox_driver.save_screenshot('response' + str(time.time())[3:10] + '.png')
     # print 'response is:', headless_firefox_driver.page_source
     headless_firefox_driver.quit()
 
 
 def get_sliding_url(url):
-    print 'get_sliding_url'
+    print 'get_sliding_url is run.'
     header = {
         'User-Agent': 'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/50.0.2661.102 Safari/537.36'
     }
     request = urllib2.Request(url, headers=header)
-    for i in range(10):
+    h = True
+    while h:
         try:
             response = urllib2.urlopen(request)
             html = response.read()
@@ -56,6 +61,7 @@ def sliding(sliding_url):
     :param sliding_url: 需要滑动的网页
     :return:
     """
+    print 'sliding is run'
     driver = webdriver.Firefox()
     driver.delete_all_cookies()
     driver.get(sliding_url)
@@ -115,5 +121,5 @@ if __name__ == "__main__":
                 for h in range(10):
                     print '第%s次测试，再等%s分钟下一次测试。' %(i, (10-h))
                     time.sleep(60)
-            except:
-                print '小乖乖出错了！她会再次运行。'
+            except Exception as e:
+                print e.message, '小乖乖出错了！她会再次运行。'
