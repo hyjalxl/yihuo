@@ -8,8 +8,8 @@ import matplotlib.pyplot as plt
 import cv2 as cv
 import numpy as np
 
-txt_dir = 'D:\\machine_learning\\tianchi2018\\train\\txt_1000'
-imgs_dir = 'D:\\machine_learning\\tianchi2018\\train\\image_1000\\'
+txt_dir = 'D:\\machine_learning\\tianchi2018\\train_1000\\txt_1000'
+imgs_dir = 'D:\\machine_learning\\tianchi2018\\train_1000\\image_1000\\'
 
 
 def get_txt_data(t_dir):
@@ -32,6 +32,8 @@ def get_txt_data(t_dir):
                     for line in lines_text.splitlines():
                         text_list = line.split(',')
                         pop_data = text_list.pop()
+                        if 'N7100' in pop_data:
+                            print(file_name)
                         # print(data_list)
                         # data_list = line_text.split(',')
                         # data_list.pop()
@@ -49,8 +51,8 @@ def get_img(img_path):
     """
     pass
     img = cv.imread(img_path, 0)
-    print(type(img))
-    print(img.size)
+    # print(type(img))
+    # print(img.size)
     ret, thresh = cv.threshold(img, 127, 255, 0)
     a, contour, b = cv.findContours(thresh, cv.RETR_TREE, cv.CHAIN_APPROX_SIMPLE)
     print(contour[0])
@@ -80,7 +82,7 @@ if __name__ == '__main__':
             break
         img_dir = imgs_dir + img_name[0:len(img_name) - 3] + 'jpg'
         print(img_dir)
-        get_img(img_dir)
+        # get_img(img_dir)
         i += 1
 
     plt.scatter(wide_dict.keys(), wide_dict.values())
