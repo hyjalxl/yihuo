@@ -49,14 +49,14 @@ for t in range(100):
     optimizer.step()
     # print(loss.data[0], prediction.data.numpy()[0])
     # 下面是画图模块
-#     if t % 5 == 0:
-#         plt.cla()
-#         plt.scatter(x.data.numpy(), y.data.numpy())
-#         plt.plot(x.data.numpy(), prediction.data.numpy(), 'r-', lw=5)
-#         plt.text(0.5, 0, 'Loss=%4f' % loss.data[0], fontdict={'size': 20, 'color': 'red'})
-#         plt.pause(1)
-# plt.ioff()
-# plt.show()
+    if t % 5 == 0:
+        plt.cla()
+        plt.scatter(x.data.numpy(), y.data.numpy())
+        plt.plot(x.data.numpy(), prediction.data.numpy(), 'r-', lw=5)
+        plt.text(0.5, 0, 'Loss=%4f' % loss.data[0], fontdict={'size': 20, 'color': 'red'})
+        plt.pause(1)
+plt.ioff()
+plt.show()
 
 if __name__ == '__main__':
     pass
