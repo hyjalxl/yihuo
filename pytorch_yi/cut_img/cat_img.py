@@ -9,21 +9,23 @@
 import os
 import cv2 as cv
 import numpy as np
+import time
 
 
-def draw_box(img_path):
+def draw_box(img_name):
     """
-    
-    :param img_path: 需要剪切的图片路径
+    原计划将图像按照方框进行剪切，后更改方案为按照方框进行二值化显示
+    :param img_name: 需要处理的图片路径
     :return: 
     """
     # 读入图像
-    img = cv.imread(img_path, 1)
-
+    img = cv.imread(img_name, 1)
+    img2 = cv.resize(img, (256, 256))
+    cv.imwrite('./t_A/' + img_name[0: len(img_name) - 3] + 'png', img2)
     # 读取和照片同文件名的txt文件，将文本中的每行数据加到box_list列表
-    with open(img_path + '.txt', 'r', encoding='UTF-8') as f:
+    with open(img_name + '.txt', 'r', encoding='UTF-8') as f:
         box_list = f.readlines()
-    # box_list列表内每行数据
+    # box_list是列表内每行数据
     for data_line in box_list:
         # print(data_line)
         # data_list是方框顶点坐标和对应文本的列表
@@ -32,9 +34,24 @@ def draw_box(img_path):
         # print(data_list)
         box = [[float(data_list[0]), float(data_list[1])], [float(data_list[2]), float(data_list[3])], [float(data_list[4]), float(data_list[5])], [float(data_list[6]), float(data_list[7])]]
         np_box = np.array(box, np.int32)
-        print(np_box)
+        # #############################上面是获取标注框，下面为处理图像部分#######################
+        # print(np_box)
+        # print('#'*50)
         pts = np_box.reshape((- 1, 1, 2))
-        cv.polylines(img, [pts], True, (0, 0, 255), thickness=2)
+        # print(pts)
+        # cv.polylines 勾画多边形
+        cv.polylines(img, [pts], True, (0, 0, 255), lineType=8, thickness=1)
+        # cv.fillpoly 填充颜色
+        cv.fillPoly(img, [pts], (0, 255, 0,))
+
+        # 根据填充的颜色二值化图像
+        # ret, thresh = cv.threshold(img, 254, 255, 0)
+        hsv = cv.cvtColor(img, cv.COLOR_BGR2HSV)
+        l_blue = np.array([50, 254, 254])
+        h_blue = np.array([60, 255, 255])
+
+        mask = cv.inRange(hsv, l_blue, h_blue)
+        # img2 = cv.cvtColor(mask, cv.COLOR_HSV2BGR)
 
 
     # 以下代码是找图片轮廓，此函数暂时用不到
@@ -49,11 +66,33 @@ def draw_box(img_path):
     # # cv.drawContours(img, [box2], 0, (0, 0, 255), 2)
 
     # 下面是图像显示部分
-    cv.imshow(img_path, img)
-    cv.waitKey(0)
-    cv.destroyAllWindows()
+    # print(len(mask))
+    # 按位取反使图像泛白显示
+    # res = cv.bitwise_not(mask)
+    mask = cv.resize(mask, (256, 256))
+    cv.imwrite('./t_B/' + img_name[0: len(img_name)-3] + 'png', mask)
+
+    # cv.imshow(img_name, mask)
+    # cv.waitKey(0)
+    # cv.destroyAllWindows()
     pass
 
+
+def get_img_name():
+    # for name_lists in [files for _, _, files in os.walk('./')]:
+    #
+    #     for name in name_lists:
+    #         print()
+    img_name_list = []
+    for name in os.listdir('./'):
+        if name.find('jpg', len(name)-3, len(name)) != -1:
+            img_name_list.append(name)
+    return img_name_list
+
 if __name__ == '__main__':
-    img_path = 'T1b7UvXohaXXXXXXXX_!!0-item_pic.jpg'
-    draw_box(img_path)
+
+    img_name_list = get_img_name()
+    for img_name in img_name_list:
+        # img_name = 'T1A3mtFspcXXXXXXXX_!!0-item_pic.jpg'
+        draw_box(img_name)
+        time.sleep(0.5)
