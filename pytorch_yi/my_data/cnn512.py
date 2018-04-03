@@ -4,7 +4,18 @@ import torch.nn as nn
 import torch.nn.functional as F
 from torch.autograd import Variable
 from torch.utils.data import Dataset, DataLoader
+
+import time
+import os
 import cv2 as cv
+from PIL import Image
+from torchvision import transforms, utils
+
+
+def default_loader(path):
+    img = cv.imread(path)
+    # img = Image.open(path).convert('RGB')
+    return img
 
 
 class Net(nn.Module):
@@ -43,7 +54,7 @@ class MyNet(nn.Module):
         super(MyNet, self).__init__()
         # input->(1, 512, 512)->(16, 256, 256)
         self.conv1 = nn.Sequential(
-            nn.Conv2d(1, 16, 5, 1, 2),
+            nn.Conv2d(3, 16, 5, 1, 2),
             nn.ReLU(),
             nn.MaxPool2d(kernel_size=2)
         )
@@ -94,33 +105,85 @@ class MyNet(nn.Module):
 
 
 class MyDataset(Dataset):
-    def __init__(self):
-        pass
+
+    def __init__(self, path, transform=None, loader=default_loader):
+        self.train_img_path = path + 'my_data_A/'
+        self.label_img_path = path + 'my_data_B/'
+        # print(self.train_img_path)
+        self.train_list = []
+        # label_list = []
+        for train_names in os.listdir(self.train_img_path):
+            if train_names.find('png', len(train_names)-3, len(train_names)) != -1:
+
+                self.train_list.append((self.train_img_path + train_names, self.label_img_path + train_names))
+        # print(self.train_list)
+        self.transform = transform
+        self.loader = loader
+
+    def __getitem__(self, item):
+        train, label = self.train_list[item]
+        train_file = self.loader(train)
+        label_file = self.loader(label)
+        if self.transform is not None:
+            train_img = self.transform(train_file)
+            label_img = self.transform(label_file)
+        return train_img, label_img
+
+    def __len__(self):
+        return len(self.train_list)
 
 
 if __name__ == '__main__':
-    img = cv.imread('./my_data_A/TB1..FLLXXXXXbCXpXXunYpLFXX.png', 0)
-    img_label = cv.imread('./my_data_B/TB1..FLLXXXXXbCXpXXunYpLFXX.png', 0)
-    img_label_tensor = Variable((torch.from_numpy(img_label).type(torch.FloatTensor)/255.).view(1, 1024))
-    print('img_label_tensor:', img_label_tensor)
-    # cv.imshow('t', img)
+    # img = cv.imread('./my_data_A/TB1..FLLXXXXXbCXpXXunYpLFXX.png', 0)
+    # img_label = cv.imread('./my_data_B/TB1..FLLXXXXXbCXpXXunYpLFXX.png', 0)
+    # img_label_tensor = Variable((torch.from_numpy(img_label).type(torch.FloatTensor)/255.).view(1, 1024))
+    # print('img_label_tensor:', img_label_tensor)
+    # # cv.imshow('t', img)
+    # # cv.waitKey(0)
+    # # cv.destroyAllWindows()
+    # img_tensor = torch.from_numpy(img).type(torch.FloatTensor)/255.
+    # img_tensor = img_tensor.view(1, 1, 512, 512)
+    # img_variable = Variable(img_tensor, requires_grad=True)
+    # # print(img_variable)
+    #
+    # net = Net()
+    # # print(net)
+    #
+    # mynet = MyNet()
+    # out = mynet(img_variable)
+    # print(out)
+    # mynet.zero_grad()
+    # print('############################')
+    # criterion = nn.MSELoss()
+    #
+    # loss = criterion(out, img_label_tensor)
+    # print('loss:', loss)
+
+    data = MyDataset(path = './', transform=transforms.ToTensor())
+    # print(len(data))
+    data_loader = DataLoader(data, batch_size=1, shuffle=True)
+    img = default_loader('./my_data_A/TB1.3pkLXXXXXXjaFXXunYpLFXX.png')
+    # cv.imshow('i', img)
     # cv.waitKey(0)
     # cv.destroyAllWindows()
-    img_tensor = torch.from_numpy(img).type(torch.FloatTensor)/255.
-    img_tensor = img_tensor.view(1, 1, 512, 512)
-    img_variable = Variable(img_tensor, requires_grad=True)
-    # print(img_variable)
+    print(len(data_loader))
+    net = MyNet()
+    optimizer = torch.optim.Adam(net.parameters(), lr=0.001)
+    loss_function = nn.MSELoss()
+    for epoch in range(5):
+        for step, (train, label) in enumerate(data_loader):
+            b_x = Variable(train)
+            b_y = Variable(label[:1, 2]).view(1, 1024)
+            # b_y = Variable(label)
 
-    net = Net()
-    # print(net)
-
-    mynet = MyNet()
-    out = mynet(img_variable)
-    print(out)
-    mynet.zero_grad()
-    print('############################')
-    criterion = nn.MSELoss()
-
-    loss = criterion(out, img_label_tensor)
-    print('loss:', loss)
+            # print(b_y)
+            # time.sleep(3)
+            output = net(b_x)
+            # print(output)
+            loss = loss_function(output, b_y)
+            optimizer.zero_grad()
+            loss.backward()
+            optimizer.step()
+            if step % 100 == 0:
+                print(output.view(32, 32))
 
