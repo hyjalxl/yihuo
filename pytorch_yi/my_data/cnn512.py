@@ -1,0 +1,126 @@
+import torch
+from torch.autograd import Variable
+import torch.nn as nn
+import torch.nn.functional as F
+from torch.autograd import Variable
+from torch.utils.data import Dataset, DataLoader
+import cv2 as cv
+
+
+class Net(nn.Module):
+    def __init__(self):
+        super(Net, self).__init__()
+        # 1 input image channel, 6 output channels, 5x5 square convolution
+        # kernel
+        self.conv1 = nn.Conv2d(1, 6, 5)  # Input ->(1, 512, 512)
+        self.conv2 = nn.Conv2d(6, 16, 5)  # ->(6, 256, 256)->(16, 128, 128)
+        # an affine operation: y = Wx + b
+        self.fc1 = nn.Linear(16*5*5, 120)  # ->(16, 128, 128)
+        self.fc2 = nn.Linear(120, 84)
+        self.fc3 = nn.Linear(84, 10)
+
+    def forward(self, x):
+        # Max pooling over a (2x2) windows
+        x = F.max_pool2d(F.relu(self.conv1(x)), (2, 2))
+        # If the size is a square you can specity a single number
+        x = F.max_pool2d(F.relu(self.conv2(x)), 2)
+        x = x.view(-1, self.num_flat_features(x))
+        x = F.relu(self.fc1(x))
+        x = F.relu(self.fc2(x))
+        x = self.fc3(x)
+        return x
+
+    def num_flat_features(self, x):
+        size = x.size()[1:]  # all dimensions except the batch dimension
+        num_features = 1
+        for s in size:
+            num_features *= s
+        return num_features
+
+
+class MyNet(nn.Module):
+    def __init__(self):
+        super(MyNet, self).__init__()
+        # input->(1, 512, 512)->(16, 256, 256)
+        self.conv1 = nn.Sequential(
+            nn.Conv2d(1, 16, 5, 1, 2),
+            nn.ReLU(),
+            nn.MaxPool2d(kernel_size=2)
+        )
+        # input->(16, 256, 256)->(32, 126, 126)
+        self.conv2 = nn.Sequential(
+            nn.Conv2d(16, 32, 5),
+            nn.ReLU(),
+            nn.MaxPool2d(2)
+        )
+        # input->(32, 128, 128)->(64, 61, 61)
+        self.conv3 = nn.Sequential(
+            nn.Conv2d(32, 64, 5),
+            nn.ReLU(),
+            nn.MaxPool2d(2)
+        )
+        # input->(64, 64, 64)->(128, 28, 28)
+        self.conv4 = nn.Sequential(
+            nn.Conv2d(64, 128, 5),
+            nn.ReLU(),
+            nn.MaxPool2d(2)
+        )
+        self.out = nn.Linear(128 * 28 * 28, 1024)
+
+    def forward(self, x):
+        # self.num_flat_features可以查看每一层神经网络的size
+        # self.num_flat_features(x)
+        x = self.conv1(x)
+        # self.num_flat_features(x)
+        x = self.conv2(x)
+        # self.num_flat_features(x)
+        x = self.conv3(x)
+        # self.num_flat_features(x)
+        x = self.conv4(x)
+        # self.num_flat_features(x)
+        x = x.view(-1, self.num_flat_features(x))
+        output = self.out(x)
+        return output
+
+    def num_flat_features(self, x):
+        # size = x.size()[1:]
+        size = x.size()
+        # print(size)
+        num_features = 1
+        for s in size:
+            num_features *= s
+            # print(num_features)
+        return num_features
+
+
+class MyDataset(Dataset):
+    def __init__(self):
+        pass
+
+
+if __name__ == '__main__':
+    img = cv.imread('./my_data_A/TB1..FLLXXXXXbCXpXXunYpLFXX.png', 0)
+    img_label = cv.imread('./my_data_B/TB1..FLLXXXXXbCXpXXunYpLFXX.png', 0)
+    img_label_tensor = Variable((torch.from_numpy(img_label).type(torch.FloatTensor)/255.).view(1, 1024))
+    print('img_label_tensor:', img_label_tensor)
+    # cv.imshow('t', img)
+    # cv.waitKey(0)
+    # cv.destroyAllWindows()
+    img_tensor = torch.from_numpy(img).type(torch.FloatTensor)/255.
+    img_tensor = img_tensor.view(1, 1, 512, 512)
+    img_variable = Variable(img_tensor, requires_grad=True)
+    # print(img_variable)
+
+    net = Net()
+    # print(net)
+
+    mynet = MyNet()
+    out = mynet(img_variable)
+    print(out)
+    mynet.zero_grad()
+    print('############################')
+    criterion = nn.MSELoss()
+
+    loss = criterion(out, img_label_tensor)
+    print('loss:', loss)
+
