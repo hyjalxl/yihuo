@@ -10,6 +10,7 @@ import os
 import cv2 as cv
 from PIL import Image
 from torchvision import transforms, utils
+import matplotlib.pyplot as plt
 
 
 def default_loader(path):
@@ -173,8 +174,14 @@ if __name__ == '__main__':
     for epoch in range(5):
         for step, (train, label) in enumerate(data_loader):
             b_x = Variable(train)
-            b_y = Variable(label[:1, 2]).view(1, 1024)
-            # b_y = Variable(label)
+            print(b_x.data)
+            b_y = Variable(label.byte().float()[:1, 2]).view(1, 1024)
+            print(b_y.data)
+            time.sleep(5)
+            print('#####################')
+            # for i in b_y.view(32, 32).data.numpy():
+            #     print(i)
+
 
             # print(b_y)
             # time.sleep(3)
@@ -184,6 +191,13 @@ if __name__ == '__main__':
             optimizer.zero_grad()
             loss.backward()
             optimizer.step()
-            if step % 100 == 0:
-                print(output.view(32, 32))
+            if step % 10 == 0:
+                lang_data = output.data.view(32, 32)
+                data_array = lang_data.numpy()
+                # print(data_array)
+                # cv.imshow('j', data_array*255)
+                # cv.waitKey(0)
+                # cv.destroyAllWindows()
+                # for i in data_array:
+                #     print(i + 1)
 
