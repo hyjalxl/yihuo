@@ -44,6 +44,7 @@ train_data = torchvision.datasets.MNIST(
 # plot one example
 print(train_data.train_data.size())                 # (60000, 28, 28)
 print(train_data.train_labels.size())               # (60000)
+print(train_data.train_data[0])
 # plt.imshow(train_data.train_data[0].numpy(), cmap='gray')
 # plt.title('%i' % train_data.train_labels[0])
 # plt.show()
