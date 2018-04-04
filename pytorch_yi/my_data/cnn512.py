@@ -124,6 +124,7 @@ class MyDataset(Dataset):
     def __getitem__(self, item):
         train, label = self.train_list[item]
         train_file = self.loader(train)
+        # print(train_file)
         label_file = self.loader(label)
         if self.transform is not None:
             train_img = self.transform(train_file)
@@ -171,23 +172,27 @@ if __name__ == '__main__':
     net = MyNet()
     optimizer = torch.optim.Adam(net.parameters(), lr=0.001)
     loss_function = nn.MSELoss()
+    loss_function2 = nn.CosineEmbeddingLoss()
+    loss_function3 = nn.NLLLoss2d()
+    loss_function4 = nn.CrossEntropyLoss()
     for epoch in range(5):
         for step, (train, label) in enumerate(data_loader):
             b_x = Variable(train)
-            print(b_x.data)
+            # print(label)
             b_y = Variable(label.byte().float()[:1, 2]).view(1, 1024)
-            print(b_y.data)
-            time.sleep(5)
+            # cv.imshow('label', label)
+            # cv.waitKey(0)
+            # cv.destroyAllWindows()
             print('#####################')
             # for i in b_y.view(32, 32).data.numpy():
             #     print(i)
 
 
-            # print(b_y)
+            print(b_x)
             # time.sleep(3)
             output = net(b_x)
             # print(output)
-            loss = loss_function(output, b_y)
+            loss = loss_function4(output, b_y.long())
             optimizer.zero_grad()
             loss.backward()
             optimizer.step()
