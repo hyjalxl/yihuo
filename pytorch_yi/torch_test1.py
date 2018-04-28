@@ -5,6 +5,21 @@ import torch
 from torch.autograd import Variable
 import torch.nn as nn
 import torch.nn.functional as F
+import string
+
+all_characters = string.printable
+n_characters = len(all_characters)
+
+
+
+
+
+
+def char_tensor(string):
+    tensor = torch.zeros(len(string)).long()
+    for c in range(len(string)):
+        tensor[c] = ord(string[c])
+    return Variable(tensor)
 
 
 class Net(nn.Module):
@@ -50,8 +65,8 @@ def torch_y():
     print(v_out)
     print(variable.data.numpy())
 
+
 if __name__ == '__main__':
-    # torch_y()
-    net = Net()
-    print(net)
-    pass
+    print(char_tensor('123abc!!!胡阳杰'))
+    # print(ord('胡'))
+    # print(chr(2))
